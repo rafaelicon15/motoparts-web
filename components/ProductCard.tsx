@@ -1,19 +1,26 @@
 // components/ProductCard.tsx
+"use client"; 
+
 import Link from 'next/link';
 import { ShoppingCart, Package } from 'lucide-react';
 
-export default function ProductCard({ product, bcvRate = 443.26 }: { product: any, bcvRate?: number }) {
-  // ESCUDO: Si la base de datos envía un producto fantasma o vacío, lo ignoramos para que no rompa la tienda
-  if (!product || typeof product.price_usd === 'undefined') return null;
+export default function ProductCard({ product, bcvRate = 36.50 }: { product: any, bcvRate?: number }) {
+  
+  if (!product || !product.id) return null;
 
-  const priceUsd = product.price_usd || 0;
+  const priceUsd = Number(product.price_usd) || 0;
   const priceBs = (priceUsd * bcvRate).toFixed(2);
 
+  const handleAddToCart = () => {
+    alert(`¡Añadido ${product.name} al carrito de compras!`);
+  };
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col group">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all flex flex-col group h-full">
       
-      <Link href={`/product/${product.id}`} className="flex-1 flex flex-col cursor-pointer">
-        <div className="aspect-square bg-gray-50 relative flex items-center justify-center p-4 overflow-hidden">
+      {/* 1. ZONA CLICABLE (FOTO Y TEXTO) */}
+      <Link href={`/product/${product.id}`} className="flex-1 flex flex-col overflow-hidden rounded-t-2xl">
+        <div className="aspect-square bg-gray-50 relative flex items-center justify-center p-4">
           {product.image_url ? (
             <img
               src={product.image_url}
@@ -44,17 +51,16 @@ export default function ProductCard({ product, bcvRate = 443.26 }: { product: an
         </div>
       </Link>
 
-      <div className="px-5 pb-5 pt-2">
+      {/* 2. ZONA DEL BOTÓN (SEPARADO DEL LINK) */}
+      <div className="px-5 pb-5 pt-2 mt-auto">
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            alert(`¡Añadido ${product.name} al carrito de compras!`);
-          }}
-          className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-[#e3000f] transition-colors flex items-center justify-center gap-2 shadow-md"
+          onClick={handleAddToCart}
+          className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-[#e3000f] transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer"
         >
           <ShoppingCart size={16} /> Añadir al carrito
         </button>
       </div>
+      
     </div>
   );
 }

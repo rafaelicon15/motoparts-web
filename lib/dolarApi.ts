@@ -1,30 +1,43 @@
 // lib/dolarApi.ts
-
-let lastKnownRate: number = 443.26; 
+import { supabase } from './supabase';
 
 export async function getBcvRate(): Promise<number> {
   try {
-    const venezuelaDate = new Date().toLocaleString("es-VE", {
-      timeZone: "America/Caracas",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+    // 1. Intentamos consultar la API oficial en tiempo real
+    const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial', { 
+      cache: 'no-store' 
     });
-
-    const response = await fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv', {
-      cache: 'force-cache',
-      next: { tags: [`bcv-${venezuelaDate}`] }
-    });
+    const data = await res.json();
     
-    if (!response.ok) throw new Error('Error al conectar con la API de DolarVzla');
+    if (data && data.promedio) {
+      const currentRate = data.promedio;
+      
+      // 2. ÉXITO: Guardamos esta tasa en la base de datos como la "última conocida"
+      await supabase.from('system_settings').upsert({ 
+        key_name: 'last_bcv_rate', 
+        key_value: currentRate.toString() 
+      });
+      
+      return currentRate;
+    }
     
-    const data = await response.json();
-    lastKnownRate = data.monitors.bcv.price;
-    return lastKnownRate;
+    throw new Error("Datos de la API inválidos");
     
   } catch (error) {
-    // Usamos console.log en lugar de console.error para evitar la pantalla de error de Next.js
-    console.log(`Aviso: Usando la última tasa conocida: Bs. ${lastKnownRate}`);
-    return lastKnownRate; 
+    console.error("Aviso: Fallo en API del Dólar, rescatando la última tasa conocida de la BD...");
+    
+    // 3. CONTINGENCIA: Si la API falló, buscamos en nuestra base de datos
+    const { data } = await supabase
+      .from('system_settings')
+      .select('key_value')
+      .eq('key_name', 'last_bcv_rate')
+      .single();
+      
+    if (data && data.key_value) {
+      return parseFloat(data.key_value);
+    }
+    
+    // Fallback extremo por si la base de datos también falla (nunca debería pasar)
+    return 36.50; 
   }
 }
