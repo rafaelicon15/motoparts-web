@@ -4,8 +4,7 @@ import { Search, User, MapPin, Phone } from 'lucide-react';
 import { getBcvRate } from '@/lib/dolarApi';
 import CartWidget from './CartWidget';
 
-export default async function Header() {
-  // Obtenemos la tasa BCV directamente en el servidor para el Header
+export default async function Header({ hideCategories = false }: { hideCategories?: boolean }) {
   const bcvRate = await getBcvRate();
 
   return (
@@ -46,21 +45,21 @@ export default async function Header() {
             <User size={22} />
             <span className="text-[11px] mt-1 font-semibold uppercase">Cuenta</span>
           </Link>
-          
-          {/* Aquí inyectamos nuestro componente inteligente para el carrito */}
           <CartWidget />
         </div>
       </div>
 
-      {/* Barra de Categorías (Gris Claro) */}
-      <nav className="bg-gray-50 py-3 px-4 md:px-8 flex gap-8 text-sm font-semibold text-gray-600 overflow-x-auto border-b border-gray-200">
-        <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Todas las Categorías</Link>
-        <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Motor</Link>
-        <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Frenos</Link>
-        <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Transmisión</Link>
-        <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Suspensión</Link>
-        <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Accesorios</Link>
-      </nav>
+      {/* Barra de Categorías (Gris Claro) - SE OCULTA SI hideCategories ES TRUE */}
+      {!hideCategories && (
+        <nav className="bg-gray-50 py-3 px-4 md:px-8 flex gap-8 text-sm font-semibold text-gray-600 overflow-x-auto border-b border-gray-200">
+          <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Todas las Categorías</Link>
+          <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Motor</Link>
+          <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Frenos</Link>
+          <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Transmisión</Link>
+          <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Suspensión</Link>
+          <Link href="#" className="hover:text-[#e3000f] whitespace-nowrap transition-colors">Accesorios</Link>
+        </nav>
+      )}
     </header>
   );
 }

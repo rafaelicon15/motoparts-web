@@ -1,21 +1,23 @@
 // app/(shop)/page.tsx
 import { getBcvRate } from '@/lib/dolarApi';
 import ProductCard from '@/components/ProductCard';
+import { supabase } from '@/lib/supabase';
+
+// Revalidamos la tienda cada 60 segundos para que sea rápida pero muestre productos nuevos
+export const revalidate = 60;
 
 export default async function ShopPage() {
   const bcvRate = await getBcvRate();
 
-  // Productos de prueba (Mock Data). Luego esto vendrá de Supabase.
-  const featuredProducts = [
-    { id: '1', name: 'Amortiguador Trasero Monoshock Pro', category: 'Suspensión', priceUSD: 45.00 },
-    { id: '2', name: 'Faro LED Frontal Alta Potencia', category: 'Iluminación', priceUSD: 25.50 },
-    { id: '3', name: 'Kit de Arrastre Reforzado', category: 'Transmisión', priceUSD: 38.00 },
-    { id: '4', name: 'Pastillas de Freno de Cerámica', category: 'Frenos', priceUSD: 12.00 },
-    { id: '5', name: 'Batería de Gel 12V 7Ah', category: 'Eléctrico', priceUSD: 22.00 },
-    { id: '6', name: 'Aceite Semi-Sintético 4T 10W-40', category: 'Lubricantes', priceUSD: 8.50 },
-    { id: '7', name: 'Caucho Trasero 130/70-17', category: 'Neumáticos', priceUSD: 55.00 },
-    { id: '8', name: 'Bujía de Iridium NGK', category: 'Motor', priceUSD: 6.00 },
-  ];
+  // Consultamos los productos reales de nuestra base de datos (Supabase)
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error cargando productos:", error);
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 md:px-8">
@@ -32,18 +34,27 @@ export default async function ShopPage() {
         </h2>
       </div>
       
-      {/* Cuadrícula de Productos (Grid) */}
+      {/* Cuadrícula de Productos Reales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {featuredProducts.map((product) => (
-          <ProductCard 
-            key={product.id}
-            id={product.id}
-            name={product.name}
-            category={product.category}
-            priceUSD={product.priceUSD}
-            bcvRate={bcvRate}
-          />
-        ))}
+        {products && products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard 
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              category={product.category}
+              priceUSD={product.price_usd} // Tomamos el precio de la base de datos
+              bcvRate={bcvRate}
+              imageUrl={product.image_url} // Le pasamos la URL de la foto sin fondo
+            />
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12 bg-white rounded-xl border border-gray-200">
+            <p className="text-gray-500 font-medium">
+              Aún no hay repuestos en el catálogo. ¡Ve al panel de administrador y sube el primero!
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
