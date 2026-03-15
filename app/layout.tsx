@@ -1,10 +1,8 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "./globals.css"; // <-- ¡ESTA LÍNEA ES LA QUE DA VIDA AL DISEÑO!
 import Header from "@/components/Header";
 
-// Usamos la fuente Inter para un aspecto moderno y limpio
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
