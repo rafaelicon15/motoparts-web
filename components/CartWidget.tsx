@@ -19,8 +19,8 @@ export default function CartWidget() {
       <div className="relative">
         <ShoppingCart size={22} />
         {isMounted && totalItems > 0 && (
-          <span className="absolute -top-2 -right-2 bg-[#e3000f] text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-            {totalItems}
+          <span className="absolute -top-2 -right-2 bg-[#e3000f] text-white text-[10px] font-extrabold min-w-[18px] min-h-[18px] px-1 rounded-full flex items-center justify-center leading-none">
+            {totalItems > 99 ? '99+' : totalItems}
           </span>
         )}
       </div>
