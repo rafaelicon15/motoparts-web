@@ -26,6 +26,7 @@ type PaymentMethod = {
   store_pickup_only: boolean;
   surcharge_type: "none" | "fixed" | "percentage";
   surcharge_value: number;
+  comment?: string;
 };
 
 type ShippingAgency = {
@@ -41,6 +42,7 @@ const EMPTY_PAYMENT: Omit<PaymentMethod, "id"> = {
   store_pickup_only: false,
   surcharge_type: "none",
   surcharge_value: 0,
+  comment: "",
 };
 
 export default function SettingsPage() {
@@ -95,6 +97,7 @@ export default function SettingsPage() {
       store_pickup_only: paymentForm.store_pickup_only ?? false,
       surcharge_type: paymentForm.surcharge_type ?? "none",
       surcharge_value: Number(paymentForm.surcharge_value) || 0,
+      comment: paymentForm.comment?.trim() || null,
     };
 
     let error;
@@ -196,7 +199,7 @@ export default function SettingsPage() {
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900">
-          Ajustes & Pagos
+          Métodos de Pago & Agencias
         </h1>
         <p className="text-gray-500 mt-1">
           Configura los métodos de pago y las agencias de envío disponibles.
@@ -227,6 +230,16 @@ export default function SettingsPage() {
               value={paymentForm.name || ""}
               onChange={(e) =>
                 setPaymentForm({ ...paymentForm, name: e.target.value })
+              }
+            />
+
+            <textarea
+              placeholder="Comentario (opcional - se mostrará en el checkout)"
+              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-[#e3000f] focus:outline-none resize-none"
+              rows={2}
+              value={paymentForm.comment || ""}
+              onChange={(e) =>
+                setPaymentForm({ ...paymentForm, comment: e.target.value })
               }
             />
 
@@ -351,6 +364,9 @@ export default function SettingsPage() {
                   <p className="font-bold text-gray-800 text-sm truncate">
                     {pm.name}
                   </p>
+                  {pm.comment && (
+                    <p className="text-xs text-gray-500 mt-0.5">{pm.comment}</p>
+                  )}
                   <div className="flex flex-wrap gap-1 mt-1">
                     {pm.requires_receipt && (
                       <span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">

@@ -498,7 +498,8 @@ export default function OrdersPage() {
                 {filteredOrders.map((order) => (
                   <tr
                     key={order.id}
-                    className="hover:bg-gray-50/80 transition-colors group"
+                    onClick={() => window.location.href = `/admin/orders/details?id=${order.id}`}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
                     <td className="px-6 py-4">
                       <p className="font-bold text-gray-900 font-mono text-sm">

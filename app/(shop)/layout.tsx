@@ -30,9 +30,9 @@ export default function ShopLayout({
           <div>
             <h4 className="text-white font-bold mb-4">Enlaces Rápidos</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition">Catálogo completo</a></li>
-              <li><a href="#" className="hover:text-white transition">Ventas al Mayor</a></li>
-              <li><a href="#" className="hover:text-white transition">Términos y Condiciones</a></li>
+              <li><a href="/" className="hover:text-white transition">Catálogo completo</a></li>
+              <li><a href="/terms" className="hover:text-white transition">Términos y Condiciones</a></li>
+              <li><a href="/privacy" className="hover:text-white transition">Política de Privacidad</a></li>
             </ul>
           </div>
           <div>

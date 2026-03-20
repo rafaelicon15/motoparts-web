@@ -4,7 +4,7 @@ import { Search, User, MapPin, Phone } from 'lucide-react';
 import { getBcvRate } from '@/lib/dolarApi';
 import CartWidget from './CartWidget';
 
-export default async function Header({ hideCategories = false }: { hideCategories?: boolean }) {
+export default async function Header({ hideCategories = false, hideCart = false }: { hideCategories?: boolean; hideCart?: boolean }) {
   const bcvRate = await getBcvRate();
 
   return (
@@ -45,7 +45,7 @@ export default async function Header({ hideCategories = false }: { hideCategorie
             <User size={22} />
             <span className="text-[11px] mt-1 font-semibold uppercase">Cuenta</span>
           </Link>
-          <CartWidget />
+          {!hideCart && <CartWidget />}
         </div>
       </div>
 

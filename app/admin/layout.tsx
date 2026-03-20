@@ -18,8 +18,8 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex flex-col h-screen font-sans">
-      {/* Header Global con la cinta de categorías OCULTA */}
-      <Header hideCategories={true} />
+      {/* Header Global - Sin carrito ni categorías */}
+      <Header hideCategories={true} hideCart={true} />
 
       <div className="flex flex-1 overflow-hidden bg-gray-100">
         {/* Sidebar (Panel Lateral Oscuro) */}
@@ -69,7 +69,15 @@ export default function AdminLayout({
               className="flex items-center gap-3 px-4 py-3 text-gray-400 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
             >
               <Settings size={20} />
-              <span className="font-medium">Ajustes & Pagos</span>
+              <span className="font-medium">Métodos de Pago</span>
+            </Link>
+
+            <Link
+              href="/admin/store-settings"
+              className="flex items-center gap-3 px-4 py-3 text-gray-400 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+            >
+              <Settings size={20} />
+              <span className="font-medium">Configuración Tienda</span>
             </Link>
           </nav>
 
