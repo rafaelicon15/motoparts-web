@@ -289,7 +289,7 @@ ${itemsText}
 💳 *Pago:* ${selectedPayment?.name || ""}${refText}${receiptText}
 🆔 *Orden #:* ${orderData.id.split("-")[0].toUpperCase()}`;
 
-      const whatsappNumber = "584121234567"; // Reemplazar con número real
+      const whatsappNumber = "584243454919"; // Número de MotoParts
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
       // 5. Limpiar carrito y redirigir
