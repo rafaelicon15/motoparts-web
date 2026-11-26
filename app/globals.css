@@ -2,9 +2,38 @@
 
 :root {
   color-scheme: light;
+  --mp-ink: #111827;
+  --mp-muted: #64748b;
+  --mp-surface: #ffffff;
+  --mp-canvas: #f8fafc;
+  --mp-accent: #e3000f;
+  --mp-border: #e2e8f0;
+  --mp-radius: 1rem;
+  --mp-motion: 180ms;
 }
 
 body {
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: var(--mp-canvas);
+  color: var(--mp-ink);
+}
+
+::selection {
+  background: var(--mp-accent);
+  color: white;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mp-accent) 35%, transparent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

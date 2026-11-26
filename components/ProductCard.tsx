@@ -2,15 +2,17 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Package, Check } from "lucide-react";
+import { Package } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useState } from "react";
+import MorphActionIcon from "./MorphActionIcon";
+import type { StoreProduct } from "@/lib/demoProducts";
 
 export default function ProductCard({
   product,
   bcvRate = 36.5,
 }: {
-  product: any;
+  product: StoreProduct;
   bcvRate?: number;
 }) {
   const { addToCart } = useCartStore();
@@ -101,11 +103,11 @@ export default function ProductCard({
         >
           {added ? (
             <>
-              <Check size={16} /> ¡Añadido!
+              <MorphActionIcon name="check" size={16} /> ¡Añadido!
             </>
           ) : (
             <>
-              <ShoppingCart size={16} />
+              <MorphActionIcon name="cart" size={16} />
               {inStock ? "Añadir al carrito" : "Sin stock"}
             </>
           )}

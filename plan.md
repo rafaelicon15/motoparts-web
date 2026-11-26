@@ -1,20 +1,10 @@
-# MotoParts — plantilla comercial
 
-## Objetivo
-Convertir la tienda de repuestos en una base reutilizable para ofrecer a otros comercios: portada comercial, catálogo navegable, búsqueda, filtros, carrito y modo demo que no depende de que Supabase ya tenga productos.
+## Iteración Morphicons y UX
 
-## Diseño
-- **Movimiento:** e-commerce automotriz editorial, con contraste alto y acentos de taller.
-- **Principios:** confianza visible, lectura rápida, jerarquía de precio clara y componentes preparados para reemplazar marca/contenido.
-- **Paleta:** rojo de acción para compra y alertas; carbón para autoridad; fondos cálidos para que el producto domine.
-- **Layout:** hero compacto, controles de catálogo y tarjetas densas; contenido útil antes que decoración.
-- **Elementos distintivos:** banda de confianza, chips de categoría y precios USD/BS lado a lado.
-- **Interacción:** búsqueda y filtros conservan el contexto en la URL; las tarjetas dan feedback inmediato al añadir.
-- **Tipografía:** Inter del starter, con titulares pesados y etiquetas en mayúsculas para una lectura de mostrador.
-- **Marca:** MotoParts se presenta como un catálogo confiable, directo y preparado para ventas detal/mayor.
+La dirección visual se mantiene como un e-commerce industrial limpio: alto contraste, jerarquía tipográfica fuerte, superficies claras y un solo acento rojo. Esto sigue la recomendación de UI UX Pro Max de trabajar con roles semánticos, estados de foco visibles, responsive layout y reducción de movimiento, en lugar de acumular estilos decorativos.
 
-## Implementación
-- Supabase conserva prioridad cuando devuelve productos reales.
-- Si el catálogo está vacío o no hay variables de conexión, se muestran productos demo locales.
-- La portada usa parámetros `q` y `category` para búsqueda y filtrado sin añadir dependencias.
-- Los productos demo tienen ficha de detalle y pueden añadirse al carrito.
+Morphicons se incorporó como dependencia junto con `lucide` porque su API React consume datos de iconos, no componentes `lucide-react`. Se usa en búsqueda, carrito, añadir/confirmar y señales de confianza. Los iconos dentro de botones son decorativos para evitar nombres accesibles duplicados; los iconos independientes conservan etiqueta.
+
+La recomendación del video se tradujo a UX concreta: la tienda ahora ayuda a elegir mediante categorías, precios USD/BS, stock, precio mayorista, descripción y una ficha navegable. El objetivo no es solo un cambio cosmético, sino reducir dudas antes del checkout.
+
+Referencias consultadas: https://www.morphicons.com/docs, https://github.com/nextLevelbuilder/ui-ux-pro-max-skill, https://github.com/unclebob/ub-mode y https://vt.tiktok.com/ZSsMPfdNS/.

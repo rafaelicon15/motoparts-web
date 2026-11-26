@@ -2,8 +2,9 @@ import { supabase } from '@/lib/supabase';
 import ProductCard from '@/components/ProductCard';
 import { getBcvRate } from '@/lib/dolarApi';
 import { demoProducts, type StoreProduct } from '@/lib/demoProducts';
-import { CheckCircle2, ChevronRight, PackageCheck, ShieldCheck, Truck } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import MorphActionIcon from '@/components/MorphActionIcon';
 
 export const revalidate = 0;
 
@@ -61,14 +62,13 @@ export default async function ShopPage({
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-300 md:text-lg">Piezas confiables, precios claros y despacho a todo el país. Compra al detal o solicita tu cotización mayorista.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a href="#catalogo" className="rounded-xl bg-[#e3000f] px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700">Ver catálogo</a>
-            <Link href="/?category=Accesorios" className="rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">Explorar accesorios <ChevronRight className="ml-1 inline" size={16} /></Link>
+            <Link href="/?category=Accesorios" className="rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">Explorar accesorios <MorphActionIcon name="arrow-right" size={16} className="ml-1 inline" /></Link>
           </div>
         </div>
         <div className="relative mt-9 grid max-w-3xl grid-cols-1 gap-3 text-sm text-slate-200 sm:grid-cols-3 md:absolute md:bottom-10 md:right-10 md:mt-0 md:w-[45%]">
-          {[['Envíos nacionales', Truck], ['Compra segura', ShieldCheck], ['Stock verificado', PackageCheck]].map(([label, Icon]) => {
-            const FeatureIcon = Icon as typeof Truck;
-            return <div key={String(label)} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur"><FeatureIcon size={17} className="text-red-400" /><span>{String(label)}</span></div>;
-          })}
+          {[['Envíos nacionales', 'truck'], ['Compra segura', 'shield'], ['Stock verificado', 'package']].map(([label, icon]) => (
+            <div key={label} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur"><MorphActionIcon name={icon as 'truck' | 'shield' | 'package'} size={17} className="text-red-400" label={label} /><span>{label}</span></div>
+          ))}
         </div>
       </section>
 

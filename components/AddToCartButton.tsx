@@ -1,10 +1,10 @@
 // components/AddToCartButton.tsx
 "use client";
 
-import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useState } from "react";
 import Link from "next/link";
+import MorphActionIcon from "./MorphActionIcon";
 
 type Props = {
   product: {
@@ -41,11 +41,11 @@ export default function AddToCartButton({ product, inStock }: Props) {
       >
         {added ? (
           <>
-            <Check size={20} /> ¡Añadido al carrito!
+            <MorphActionIcon name="check" size={20} /> ¡Añadido al carrito!
           </>
         ) : (
           <>
-            <ShoppingCart size={20} />
+            <MorphActionIcon name="cart" size={20} />
             {inStock ? "Añadir al carrito" : "Sin stock disponible"}
           </>
         )}

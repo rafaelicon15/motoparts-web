@@ -2,22 +2,22 @@
 "use client";
 
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+import MorphActionIcon from './MorphActionIcon';
 
 export default function CartWidget() {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
   const totalItems = useCartStore((state) => state.getTotalItems());
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <Link href="/cart" className="text-gray-600 hover:text-[#e3000f] flex flex-col items-center relative transition-colors">
       <div className="relative">
-        <ShoppingCart size={22} />
+        <MorphActionIcon name="cart" size={22} />
         {isMounted && totalItems > 0 && (
           <span className="absolute -top-2 -right-2 bg-[#e3000f] text-white text-[10px] font-extrabold min-w-[18px] min-h-[18px] px-1 rounded-full flex items-center justify-center leading-none">
             {totalItems > 99 ? '99+' : totalItems}

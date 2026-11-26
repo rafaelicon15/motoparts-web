@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { Search, User, MapPin, Phone, Store } from 'lucide-react';
+import { User, MapPin, Phone, Store } from 'lucide-react';
 import { getBcvRate } from '@/lib/dolarApi';
 import CartWidget from './CartWidget';
+import MorphActionIcon from './MorphActionIcon';
 
 export default async function Header({ hideCategories = false, hideCart = false }: { hideCategories?: boolean; hideCart?: boolean }) {
   let bcvRate = 922.56;
@@ -27,7 +28,7 @@ export default async function Header({ hideCategories = false, hideCart = false 
           <Link href="/" className="flex items-center gap-2 text-3xl font-black tracking-tight text-slate-900"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e3000f] text-xl text-white shadow-sm">M</span>Moto<span className="text-[#e3000f]">Parts</span></Link>
           <form action="/" className="relative w-full max-w-xl">
             <input name="q" type="search" placeholder="Buscar repuestos, marcas o modelos..." className="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-5 pr-12 text-sm outline-none transition focus:border-[#e3000f] focus:bg-white focus:ring-2 focus:ring-red-100" />
-            <button aria-label="Buscar" className="absolute right-2 top-2 rounded-full p-2 text-slate-400 transition hover:bg-red-50 hover:text-[#e3000f]"><Search size={19} /></button>
+            <button aria-label="Buscar" className="absolute right-2 top-2 rounded-full p-2 text-slate-400 transition hover:bg-red-50 hover:text-[#e3000f]"><MorphActionIcon name="search" size={19} /></button>
           </form>
           <div className="flex items-center gap-5">
             <Link href="/login" className="flex flex-col items-center text-slate-500 transition hover:text-[#e3000f]"><User size={22} /><span className="mt-1 text-[11px] font-extrabold uppercase">Cuenta</span></Link>
