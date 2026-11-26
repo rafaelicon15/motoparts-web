@@ -11,7 +11,7 @@ export type CartItem = {
 
 type CartState = {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  addToCart: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
   getTotalItems: () => number;
@@ -22,7 +22,8 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       cart: [],
       // Función para añadir productos
-      addToCart: (item) => {
+      addToCart: (item, requestedQuantity = 1) => {
+        const quantity = Math.max(1, Math.floor(requestedQuantity));
         const currentCart = get().cart;
         const existingItem = currentCart.find((i) => i.id === item.id);
         
@@ -30,12 +31,12 @@ export const useCartStore = create<CartState>()(
           // Si ya existe, le sumamos 1 a la cantidad
           set({
             cart: currentCart.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+              i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
             ),
           });
         } else {
           // Si es nuevo, lo agregamos con cantidad 1
-          set({ cart: [...currentCart, { ...item, quantity: 1 }] });
+          set({ cart: [...currentCart, { ...item, quantity }] });
         }
       },
       // Función para eliminar un producto

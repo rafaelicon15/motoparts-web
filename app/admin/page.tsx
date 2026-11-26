@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { demoStorageKeys } from "@/lib/demoStorage";
 import {
   Package,
   ShoppingBag,
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
     text: string;
   } | null>(null);
 
-  const demoBcvKey = "motoparts-demo-bcv-rate";
+  const demoBcvKey = demoStorageKeys.bcvRate;
 
   const fetchMetrics = async () => {
     setLoading(true);
@@ -131,7 +132,12 @@ export default function AdminDashboard() {
       setMetrics((prev) => (prev ? { ...prev, bcvRate: rate } : prev));
       setTimeout(() => setBcvMessage(null), 3000);
     } catch (err: unknown) {
-      setBcvMessage({ type: "error", text: err instanceof Error ? err.message : "No se pudo guardar la tasa." });
+      window.localStorage.setItem(demoBcvKey, rate.toFixed(2));
+      setMetrics((prev) => (prev ? { ...prev, bcvRate: rate } : prev));
+      setBcvMessage({
+        type: "success",
+        text: `Supabase no respondió; tasa guardada localmente a Bs. ${rate.toFixed(2)} en este navegador.`,
+      });
     } finally {
       setSavingBcv(false);
     }

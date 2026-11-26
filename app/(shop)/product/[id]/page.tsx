@@ -187,6 +187,7 @@ export default async function ProductDetailPage({
               priceUSD: priceUsd,
             }}
             inStock={inStock}
+            maxQuantity={Math.max(1, Number(product.stock) || 1)}
           />
         </div>
       </div>

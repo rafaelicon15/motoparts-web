@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { defaultDemoAgencies, defaultDemoPayments, demoStorageKeys, readDemoList, writeDemoList } from "@/lib/demoStorage";
 import {
   CreditCard,
   Truck,
@@ -62,16 +63,8 @@ export default function SettingsPage() {
   const fetchData = async () => {
     setLoading(true);
     if (!isSupabaseConfigured) {
-      setPayments([
-        { id: "demo-pago-movil", name: "Pago Móvil", is_active: true, requires_receipt: true, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Adjuntar comprobante" },
-        { id: "demo-transferencia", name: "Transferencia bancaria", is_active: true, requires_receipt: true, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Adjuntar comprobante" },
-        { id: "demo-crypto", name: "Crypto (USDT)", is_active: true, requires_receipt: true, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Adjuntar hash o comprobante" },
-      ]);
-      setAgencies([
-        { id: "demo-zoom", name: "ZOOM", is_active: true },
-        { id: "demo-mrw", name: "MRW", is_active: true },
-        { id: "demo-tealca", name: "TEALCA", is_active: true },
-      ]);
+      setPayments(readDemoList(demoStorageKeys.payments, defaultDemoPayments));
+      setAgencies(readDemoList(demoStorageKeys.agencies, defaultDemoAgencies));
       setLoading(false);
       return;
     }
@@ -85,7 +78,7 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    void Promise.resolve().then(fetchData);
   }, []);
 
   // --- MÉTODOS DE PAGO ---
@@ -115,7 +108,10 @@ export default function SettingsPage() {
         surcharge_value: Number(paymentForm.surcharge_value) || 0,
         comment: paymentForm.comment?.trim() || "Método demo",
       };
-      setPayments((current) => editingPaymentId ? current.map((item) => item.id === editingPaymentId ? nextPayment : item) : [...current, nextPayment]);
+      const current = readDemoList<PaymentMethod>(demoStorageKeys.payments, defaultDemoPayments);
+      const next = editingPaymentId ? current.map((item) => item.id === editingPaymentId ? nextPayment : item) : [...current, nextPayment];
+      writeDemoList(demoStorageKeys.payments, next);
+      setPayments(next);
       handleCancelPayment();
       setSavingPayment(false);
       return;
@@ -157,7 +153,10 @@ export default function SettingsPage() {
   const handleDeletePayment = async (id: string) => {
     if (!confirm("¿Eliminar este método de pago?")) return;
     if (!isSupabaseConfigured) {
-      setPayments((current) => current.filter((payment) => payment.id !== id));
+      const current = readDemoList<PaymentMethod>(demoStorageKeys.payments, defaultDemoPayments);
+      const next = current.filter((payment) => payment.id !== id);
+      writeDemoList(demoStorageKeys.payments, next);
+      setPayments(next);
       return;
     }
     const { error } = await supabase
@@ -170,7 +169,10 @@ export default function SettingsPage() {
 
   const handleTogglePayment = async (pm: PaymentMethod) => {
     if (!isSupabaseConfigured) {
-      setPayments((current) => current.map((payment) => payment.id === pm.id ? { ...payment, is_active: !payment.is_active } : payment));
+      const current = readDemoList<PaymentMethod>(demoStorageKeys.payments, defaultDemoPayments);
+      const next = current.map((payment) => payment.id === pm.id ? { ...payment, is_active: !payment.is_active } : payment);
+      writeDemoList(demoStorageKeys.payments, next);
+      setPayments(next);
       return;
     }
     const { error } = await supabase
@@ -192,7 +194,10 @@ export default function SettingsPage() {
     if (!newAgencyName.trim()) return;
     setSavingAgency(true);
     if (!isSupabaseConfigured) {
-      setAgencies((current) => [...current, { id: `demo-agency-${Date.now()}`, name: newAgencyName.trim(), is_active: true }]);
+      const current = readDemoList<ShippingAgency>(demoStorageKeys.agencies, defaultDemoAgencies);
+      const next = [...current, { id: `demo-agency-${Date.now()}`, name: newAgencyName.trim(), is_active: true }];
+      writeDemoList(demoStorageKeys.agencies, next);
+      setAgencies(next);
       setNewAgencyName("");
       setSavingAgency(false);
       return;
@@ -210,7 +215,10 @@ export default function SettingsPage() {
 
   const handleToggleAgency = async (ag: ShippingAgency) => {
     if (!isSupabaseConfigured) {
-      setAgencies((current) => current.map((agency) => agency.id === ag.id ? { ...agency, is_active: !agency.is_active } : agency));
+      const current = readDemoList<ShippingAgency>(demoStorageKeys.agencies, defaultDemoAgencies);
+      const next = current.map((agency) => agency.id === ag.id ? { ...agency, is_active: !agency.is_active } : agency);
+      writeDemoList(demoStorageKeys.agencies, next);
+      setAgencies(next);
       return;
     }
     const { error } = await supabase
@@ -229,7 +237,10 @@ export default function SettingsPage() {
   const handleDeleteAgency = async (id: string) => {
     if (!confirm("¿Eliminar esta agencia?")) return;
     if (!isSupabaseConfigured) {
-      setAgencies((current) => current.filter((agency) => agency.id !== id));
+      const current = readDemoList<ShippingAgency>(demoStorageKeys.agencies, defaultDemoAgencies);
+      const next = current.filter((agency) => agency.id !== id);
+      writeDemoList(demoStorageKeys.agencies, next);
+      setAgencies(next);
       return;
     }
     const { error } = await supabase

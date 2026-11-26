@@ -2,9 +2,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { defaultDemoBrands, defaultDemoCategories, demoStorageKeys, readDemoList, writeDemoList } from '@/lib/demoStorage';
 import { useRouter } from 'next/navigation';
-import { UploadCloud, Wand2, Save, ArrowLeft, X, ImagePlus, Package, DollarSign, FileText, Plus, Check } from 'lucide-react';
+import { UploadCloud, Wand2, Save, ArrowLeft, X, ImagePlus, Package, DollarSign, FileText, Check } from 'lucide-react';
 import Link from 'next/link';
 import { removeBackground } from '@imgly/background-removal';
 
@@ -21,8 +22,8 @@ export default function NewProductPage() {
   const [galleryFiles, setGalleryFiles] = useState<{url: string, file: File}[]>([]);
 
   // Listas de la Base de Datos
-  const [brands, setBrands] = useState<any[]>([]);
-  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [allCategories, setAllCategories] = useState<{ id: string; name: string; parent_id: string | null }[]>([]);
 
   // Estado completo B2B
   const [formData, setFormData] = useState({
@@ -44,8 +45,19 @@ export default function NewProductPage() {
   // 1. Cargar Base de Datos y LOCAL STORAGE al iniciar
   useEffect(() => {
     const fetchSelectData = async () => {
-      const { data: bData } = await supabase.from('brands').select('*').order('name');
-      const { data: cData } = await supabase.from('categories').select('*').order('name');
+      let bData = defaultDemoBrands;
+      let cData = defaultDemoCategories;
+      if (isSupabaseConfigured) {
+        const [brandsResult, categoriesResult] = await Promise.all([
+          supabase.from('brands').select('*').order('name'),
+          supabase.from('categories').select('*').order('name'),
+        ]);
+        bData = brandsResult.data || [];
+        cData = categoriesResult.data || [];
+      } else {
+        bData = readDemoList(demoStorageKeys.brands, defaultDemoBrands);
+        cData = readDemoList(demoStorageKeys.categories, defaultDemoCategories);
+      }
       if (bData) setBrands(bData);
       if (cData) setAllCategories(cData);
 
@@ -81,6 +93,16 @@ export default function NewProductPage() {
   const handleCreateBrand = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!newBrandName.trim()) return setIsAddingBrand(false);
+    if (!isSupabaseConfigured) {
+      const current = readDemoList(demoStorageKeys.brands, defaultDemoBrands);
+      const newBrand = { id: `demo-brand-${Date.now()}`, name: newBrandName.trim() };
+      const next = [...current, newBrand].sort((a, b) => a.name.localeCompare(b.name));
+      writeDemoList(demoStorageKeys.brands, next);
+      setBrands(next);
+      setFormData(prev => ({ ...prev, brand_id: newBrand.id }));
+      setNewBrandName(''); setIsAddingBrand(false);
+      return;
+    }
     const { data } = await supabase.from('brands').insert([{ name: newBrandName.trim() }]).select();
     if (data) {
       setBrands(prev => [...prev, data[0]].sort((a, b) => a.name.localeCompare(b.name)));
@@ -92,6 +114,16 @@ export default function NewProductPage() {
   const handleCreateSubcategory = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!newSubcatName.trim() || !formData.category_id) return setIsAddingSubcat(false);
+    if (!isSupabaseConfigured) {
+      const current = readDemoList(demoStorageKeys.categories, defaultDemoCategories);
+      const newCategory = { id: `demo-category-${Date.now()}`, name: newSubcatName.trim(), parent_id: formData.category_id };
+      const next = [...current, newCategory];
+      writeDemoList(demoStorageKeys.categories, next);
+      setAllCategories(next);
+      setFormData(prev => ({ ...prev, subcategory_id: newCategory.id }));
+      setNewSubcatName(''); setIsAddingSubcat(false);
+      return;
+    }
     const { data } = await supabase.from('categories').insert([{ name: newSubcatName.trim(), parent_id: formData.category_id }]).select();
     if (data) {
       setAllCategories(prev => [...prev, data[0]]);
@@ -190,9 +222,9 @@ export default function NewProductPage() {
       router.push('/admin/inventory');
       router.refresh();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      alert("Error al guardar: " + error.message);
+      alert("Error al guardar: " + (error instanceof Error ? error.message : "No se pudo guardar el producto."));
     } finally {
       setLoading(false);
     }

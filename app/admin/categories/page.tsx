@@ -2,12 +2,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { FolderTree, Tag, Edit2, Trash2, Plus, X, Save } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { defaultDemoBrands, defaultDemoCategories, demoStorageKeys, readDemoList, writeDemoList, type DemoBrand, type DemoCategory } from '@/lib/demoStorage';
+import { FolderTree, Tag, Edit2, Trash2, X, Save } from 'lucide-react';
 
 export default function CategoriesManagerPage() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
+  const [categories, setCategories] = useState<DemoCategory[]>([]);
+  const [brands, setBrands] = useState<DemoBrand[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Estados para Formularios
@@ -16,6 +17,12 @@ export default function CategoriesManagerPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    if (!isSupabaseConfigured) {
+      setCategories(readDemoList<DemoCategory>(demoStorageKeys.categories, defaultDemoCategories));
+      setBrands(readDemoList<DemoBrand>(demoStorageKeys.brands, defaultDemoBrands));
+      setLoading(false);
+      return;
+    }
     const { data: cData } = await supabase.from('categories').select('*').order('name');
     const { data: bData } = await supabase.from('brands').select('*').order('name');
     if (cData) setCategories(cData);
@@ -23,7 +30,7 @@ export default function CategoriesManagerPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { void Promise.resolve().then(fetchData); }, []);
 
   // --- LÓGICA DE CATEGORÍAS ---
   const saveCategory = async (e: React.FormEvent) => {
@@ -33,6 +40,15 @@ export default function CategoriesManagerPage() {
       name: catForm.name, 
       parent_id: catForm.parent_id || null 
     };
+
+    if (!isSupabaseConfigured) {
+      const current = readDemoList<DemoCategory>(demoStorageKeys.categories, defaultDemoCategories);
+      const next: DemoCategory = { id: catForm.id || `demo-category-${Date.now()}`, ...payload };
+      writeDemoList(demoStorageKeys.categories, isUpdate ? current.map((item) => item.id === catForm.id ? next : item) : [...current, next]);
+      setCatForm({ id: '', name: '', parent_id: '' });
+      fetchData();
+      return;
+    }
 
     let error;
     if (isUpdate) {
@@ -52,6 +68,12 @@ export default function CategoriesManagerPage() {
 
   const deleteCategory = async (id: string) => {
     if (!confirm("¿Seguro que deseas eliminar esta categoría? (Asegúrate de que no tenga productos asociados o dará error)")) return;
+    if (!isSupabaseConfigured) {
+      const current = readDemoList<DemoCategory>(demoStorageKeys.categories, defaultDemoCategories);
+      writeDemoList(demoStorageKeys.categories, current.filter((item) => item.id !== id && item.parent_id !== id));
+      fetchData();
+      return;
+    }
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) alert("No se puede eliminar: " + error.message);
     else fetchData();
@@ -61,6 +83,15 @@ export default function CategoriesManagerPage() {
   const saveBrand = async (e: React.FormEvent) => {
     e.preventDefault();
     const isUpdate = !!brandForm.id;
+
+    if (!isSupabaseConfigured) {
+      const current = readDemoList<DemoBrand>(demoStorageKeys.brands, defaultDemoBrands);
+      const next: DemoBrand = { id: brandForm.id || `demo-brand-${Date.now()}`, name: brandForm.name.trim() };
+      writeDemoList(demoStorageKeys.brands, isUpdate ? current.map((item) => item.id === brandForm.id ? next : item) : [...current, next]);
+      setBrandForm({ id: '', name: '' });
+      fetchData();
+      return;
+    }
     
     let error;
     if (isUpdate) {
@@ -80,6 +111,12 @@ export default function CategoriesManagerPage() {
 
   const deleteBrand = async (id: string) => {
     if (!confirm("¿Seguro que deseas eliminar esta marca?")) return;
+    if (!isSupabaseConfigured) {
+      const current = readDemoList<DemoBrand>(demoStorageKeys.brands, defaultDemoBrands);
+      writeDemoList(demoStorageKeys.brands, current.filter((item) => item.id !== id));
+      fetchData();
+      return;
+    }
     const { error } = await supabase.from('brands').delete().eq('id', id);
     if (error) alert("No se puede eliminar: " + error.message);
     else fetchData();
