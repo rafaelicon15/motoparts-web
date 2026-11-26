@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabase";
 import { getBcvRate } from "@/lib/dolarApi";
 import { notFound } from "next/navigation";
-import { Package, ArrowLeft, Tag, Layers } from "lucide-react";
+import { Package, ArrowLeft, Tag, Layers, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 import { getDemoProduct, type StoreProduct } from "@/lib/demoProducts";
@@ -67,6 +67,21 @@ export default async function ProductDetailPage({
             <h1 className="text-3xl font-extrabold text-gray-900 mt-1 leading-tight">
               {product.name}
             </h1>
+            {product.source_url && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                  Referencia de MercadoLibre
+                </span>
+                <a
+                  href={product.source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900"
+                >
+                  Ver publicación de referencia <ExternalLink size={13} />
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Precios */}

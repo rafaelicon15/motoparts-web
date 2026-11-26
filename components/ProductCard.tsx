@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Package } from "lucide-react";
+import { ExternalLink, Package } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useState } from "react";
 import MorphActionIcon from "./MorphActionIcon";
@@ -73,6 +73,11 @@ export default function ProductCard({
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
             {product.category || "General"}
           </span>
+          {product.source_url && (
+            <span className="mb-2 w-fit rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">
+              Producto de referencia
+            </span>
+          )}
           <h3 className="text-sm font-bold text-gray-800 leading-tight mb-3 line-clamp-2 group-hover:text-[#e3000f] transition-colors">
             {product.name || "Producto sin nombre"}
           </h3>
@@ -90,6 +95,17 @@ export default function ProductCard({
 
       {/* 2. ZONA DEL BOTÓN (SEPARADO DEL LINK) */}
       <div className="px-5 pb-5 pt-2 mt-auto">
+        {product.source_url && (
+          <a
+            href={product.source_url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mb-2 flex items-center justify-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900"
+          >
+            Ver referencia en MercadoLibre <ExternalLink size={12} />
+          </a>
+        )}
         <button
           onClick={handleAddToCart}
           disabled={!inStock}

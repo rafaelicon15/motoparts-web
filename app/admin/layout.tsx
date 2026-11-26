@@ -79,6 +79,14 @@ export default function AdminLayout({
               <Settings size={20} />
               <span className="font-medium">Configuración Tienda</span>
             </Link>
+
+            <Link
+              href="/admin/config"
+              className="flex items-center gap-3 px-4 py-3 text-gray-400 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+            >
+              <Settings size={20} />
+              <span className="font-medium">Configuración general</span>
+            </Link>
           </nav>
 
           <div className="p-4 border-t border-gray-800 space-y-2">

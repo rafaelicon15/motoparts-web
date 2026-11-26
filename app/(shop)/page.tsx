@@ -78,9 +78,11 @@ export default async function ShopPage({
 
       <section id="catalogo" className="mt-12 scroll-mt-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div><p className="text-xs font-black uppercase tracking-[0.2em] text-[#e3000f]">Catálogo destacado</p><h2 className="mt-1 text-3xl font-black tracking-tight text-slate-900">Encuentra tu repuesto</h2><p className="mt-2 text-sm text-slate-500">{usingDemo ? 'Una muestra lista para personalizar con el inventario de tu cliente.' : `${sourceProducts.length} productos disponibles en tu catálogo.`}</p></div>
+          <div><p className="text-xs font-black uppercase tracking-[0.2em] text-[#e3000f]">Catálogo destacado</p><h2 className="mt-1 text-3xl font-black tracking-tight text-slate-900">Encuentra tu repuesto</h2><p className="mt-2 text-sm text-slate-500">{usingDemo ? 'Muestra comercial con referencias públicas de MercadoLibre, lista para reemplazar por el inventario de tu cliente.' : `${sourceProducts.length} productos disponibles en tu catálogo.`}</p></div>
           {usingDemo && <span className="rounded-full bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">Modo demostración</span>}
         </div>
+
+        {usingDemo && <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-800">Los productos con etiqueta azul son referencias de MercadoLibre usadas únicamente para mostrar cómo se vería una tienda real. Precios, stock y disponibilidad deben confirmarse antes de vender.</div>}
 
         <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
           {categories.map((category) => <Link key={category} href={hrefForCategory(category)} className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition ${selectedCategory === category ? 'border-[#e3000f] bg-[#e3000f] text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-red-200 hover:text-[#e3000f]'}`}>{category}</Link>)}
