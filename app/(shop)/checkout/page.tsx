@@ -44,19 +44,28 @@ const demoAgencies: ShippingAgency[] = [
 
 const demoPaymentMethods: PaymentMethod[] = [
   {
-    id: "demo-gateway",
-    name: "Pasarela de prueba",
+    id: "demo-pago-movil",
+    name: "Pago Móvil",
     is_active: true,
-    requires_receipt: false,
+    requires_receipt: true,
     store_pickup_only: false,
     surcharge_type: "none",
     surcharge_value: 0,
   },
   {
-    id: "demo-pago-movil",
-    name: "Pago Móvil (demo)",
+    id: "demo-transferencia",
+    name: "Transferencia bancaria",
     is_active: true,
-    requires_receipt: false,
+    requires_receipt: true,
+    store_pickup_only: false,
+    surcharge_type: "none",
+    surcharge_value: 0,
+  },
+  {
+    id: "demo-crypto",
+    name: "Crypto (USDT)",
+    is_active: true,
+    requires_receipt: true,
     store_pickup_only: false,
     surcharge_type: "none",
     surcharge_value: 0,
@@ -89,7 +98,6 @@ export default function CheckoutPage() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [testCard, setTestCard] = useState({ number: "", expiry: "", cvv: "" });
 
   // --- Estado del proceso ---
   const [submitting, setSubmitting] = useState(false);
@@ -219,13 +227,6 @@ export default function CheckoutPage() {
       setError("Por favor selecciona un método de pago.");
       return;
     }
-    if (selectedPayment?.id === "demo-gateway") {
-      const cardNumber = testCard.number.replace(/\s/g, "");
-      if (cardNumber !== "4242424242424242" || testCard.expiry !== "12/30" || testCard.cvv !== "123") {
-        setError("Usa la tarjeta demo 4242 4242 4242 4242, vencimiento 12/30 y CVV 123.");
-        return;
-      }
-    }
     if (selectedPayment?.requires_receipt && !receiptFile) {
       setError(
         `El método "${selectedPayment.name}" requiere adjuntar el comprobante de pago.`
@@ -268,7 +269,7 @@ export default function CheckoutPage() {
             bcv_rate: bcvRate,
             reference_number: formData.referenceNumber.trim() || null,
             receipt_url: receiptUrl,
-            status: selectedPayment?.id === "demo-gateway" ? "paid" : "pending",
+            status: "pending",
           }])
           .select("id")
           .single();
@@ -296,7 +297,7 @@ export default function CheckoutPage() {
           surcharge,
           totalUSD,
           totalBs,
-          status: selectedPayment?.id === "demo-gateway" ? "paid" : "pending",
+          status: "pending",
           items: cart,
         });
         window.localStorage.setItem("motoparts-demo-orders", JSON.stringify(demoOrders));
@@ -603,19 +604,6 @@ ${itemsText}
                       </div>
                     </label>
                   ))}
-              </div>
-            )}
-
-            {selectedPayment?.id === "demo-gateway" && (
-              <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                <p className="text-sm font-extrabold text-blue-900">Pasarela de prueba</p>
-                <p className="mt-1 text-xs leading-5 text-blue-700">No se realizará ningún cobro. Usa estos datos para simular una aprobación:</p>
-                <p className="mt-2 rounded-lg bg-white px-3 py-2 font-mono text-xs font-bold text-blue-900">4242 4242 4242 4242 · 12/30 · CVV 123</p>
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_110px_90px]">
-                  <input aria-label="Número de tarjeta de prueba" inputMode="numeric" placeholder="4242 4242 4242 4242" value={testCard.number} onChange={(e) => setTestCard({ ...testCard, number: e.target.value })} className="rounded-lg border border-blue-200 bg-white p-2.5 text-sm outline-none focus:border-blue-500" />
-                  <input aria-label="Vencimiento de tarjeta de prueba" inputMode="numeric" placeholder="MM/AA" maxLength={5} value={testCard.expiry} onChange={(e) => setTestCard({ ...testCard, expiry: e.target.value })} className="rounded-lg border border-blue-200 bg-white p-2.5 text-sm outline-none focus:border-blue-500" />
-                  <input aria-label="CVV de tarjeta de prueba" inputMode="numeric" placeholder="CVV" maxLength={3} value={testCard.cvv} onChange={(e) => setTestCard({ ...testCard, cvv: e.target.value })} className="rounded-lg border border-blue-200 bg-white p-2.5 text-sm outline-none focus:border-blue-500" />
-                </div>
               </div>
             )}
 
