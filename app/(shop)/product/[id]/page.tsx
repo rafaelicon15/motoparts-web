@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Package, ArrowLeft, Tag, Layers } from "lucide-react";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
+import { getDemoProduct, type StoreProduct } from "@/lib/demoProducts";
 
 export const revalidate = 0;
 
@@ -15,10 +16,15 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
 
-  const [{ data: product }, bcvRate] = await Promise.all([
-    supabase.from("products").select("*").eq("id", id).single(),
-    getBcvRate(),
-  ]);
+  let product: StoreProduct | null = null;
+  try {
+    const result = await supabase.from("products").select("*").eq("id", id).single();
+    product = result.data;
+  } catch {
+    product = null;
+  }
+  const bcvRate = await getBcvRate();
+  product = product || getDemoProduct(id) || null;
 
   if (!product) notFound();
 

@@ -1,12 +1,8 @@
-// lib/supabase.ts
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// El modo demo permite presentar la plantilla antes de conectar Supabase.
+// En producción, las variables reales de Vercel toman prioridad.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://demo-placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'demo-placeholder-key';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Faltan las variables de entorno de Supabase en el archivo .env.local');
-}
-
-// Exportamos el cliente para usarlo en toda la app
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
