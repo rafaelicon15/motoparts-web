@@ -10,6 +10,7 @@
 - [x] Agregar pasarela de pago de prueba con tarjeta demo y persistencia local de pedidos cuando Supabase no está configurado.
 - [x] Mantener carrito funcional con cantidades, eliminación, vaciado y paso al checkout.
 - [x] Evitar `Failed to fetch` en tasa BCV, configuración de tienda, pagos y agencias durante el modo demo.
+- [x] Configurar el checkout demo para operar con Pago Móvil, transferencia bancaria y Crypto (USDT), solicitando comprobante y sin cobrar tarjetas.
 - [ ] Conectar credenciales reales de Supabase en Vercel y cargar el inventario del cliente.
 - [ ] Sustituir datos de contacto, logo y colores desde configuración de tienda.
 - [ ] Validar checkout, pagos y cálculo de envíos con datos reales.

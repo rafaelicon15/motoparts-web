@@ -63,8 +63,9 @@ export default function SettingsPage() {
     setLoading(true);
     if (!isSupabaseConfigured) {
       setPayments([
-        { id: "demo-gateway", name: "Pasarela de prueba", is_active: true, requires_receipt: false, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Simulación sin cobro real" },
-        { id: "demo-pago-movil", name: "Pago Móvil (demo)", is_active: true, requires_receipt: false, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Método de muestra" },
+        { id: "demo-pago-movil", name: "Pago Móvil", is_active: true, requires_receipt: true, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Adjuntar comprobante" },
+        { id: "demo-transferencia", name: "Transferencia bancaria", is_active: true, requires_receipt: true, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Adjuntar comprobante" },
+        { id: "demo-crypto", name: "Crypto (USDT)", is_active: true, requires_receipt: true, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Adjuntar hash o comprobante" },
       ]);
       setAgencies([
         { id: "demo-zoom", name: "ZOOM", is_active: true },
