@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import {
   CreditCard,
   Truck,
@@ -61,6 +61,19 @@ export default function SettingsPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    if (!isSupabaseConfigured) {
+      setPayments([
+        { id: "demo-gateway", name: "Pasarela de prueba", is_active: true, requires_receipt: false, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Simulación sin cobro real" },
+        { id: "demo-pago-movil", name: "Pago Móvil (demo)", is_active: true, requires_receipt: false, store_pickup_only: false, surcharge_type: "none", surcharge_value: 0, comment: "Método de muestra" },
+      ]);
+      setAgencies([
+        { id: "demo-zoom", name: "ZOOM", is_active: true },
+        { id: "demo-mrw", name: "MRW", is_active: true },
+        { id: "demo-tealca", name: "TEALCA", is_active: true },
+      ]);
+      setLoading(false);
+      return;
+    }
     const [pmRes, agRes] = await Promise.all([
       supabase.from("payment_methods").select("*").order("name"),
       supabase.from("shipping_agencies").select("id, name, is_active").order("name"),
@@ -89,6 +102,23 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!paymentForm.name?.trim()) return;
     setSavingPayment(true);
+
+    if (!isSupabaseConfigured) {
+      const nextPayment: PaymentMethod = {
+        id: editingPaymentId || `demo-payment-${Date.now()}`,
+        name: paymentForm.name.trim(),
+        is_active: paymentForm.is_active ?? true,
+        requires_receipt: paymentForm.requires_receipt ?? false,
+        store_pickup_only: paymentForm.store_pickup_only ?? false,
+        surcharge_type: paymentForm.surcharge_type ?? "none",
+        surcharge_value: Number(paymentForm.surcharge_value) || 0,
+        comment: paymentForm.comment?.trim() || "Método demo",
+      };
+      setPayments((current) => editingPaymentId ? current.map((item) => item.id === editingPaymentId ? nextPayment : item) : [...current, nextPayment]);
+      handleCancelPayment();
+      setSavingPayment(false);
+      return;
+    }
 
     const payload = {
       name: paymentForm.name.trim(),
@@ -125,6 +155,10 @@ export default function SettingsPage() {
 
   const handleDeletePayment = async (id: string) => {
     if (!confirm("¿Eliminar este método de pago?")) return;
+    if (!isSupabaseConfigured) {
+      setPayments((current) => current.filter((payment) => payment.id !== id));
+      return;
+    }
     const { error } = await supabase
       .from("payment_methods")
       .delete()
@@ -134,6 +168,10 @@ export default function SettingsPage() {
   };
 
   const handleTogglePayment = async (pm: PaymentMethod) => {
+    if (!isSupabaseConfigured) {
+      setPayments((current) => current.map((payment) => payment.id === pm.id ? { ...payment, is_active: !payment.is_active } : payment));
+      return;
+    }
     const { error } = await supabase
       .from("payment_methods")
       .update({ is_active: !pm.is_active })
@@ -152,6 +190,12 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!newAgencyName.trim()) return;
     setSavingAgency(true);
+    if (!isSupabaseConfigured) {
+      setAgencies((current) => [...current, { id: `demo-agency-${Date.now()}`, name: newAgencyName.trim(), is_active: true }]);
+      setNewAgencyName("");
+      setSavingAgency(false);
+      return;
+    }
     const { error } = await supabase
       .from("shipping_agencies")
       .insert([{ name: newAgencyName.trim(), is_active: true }]);
@@ -164,6 +208,10 @@ export default function SettingsPage() {
   };
 
   const handleToggleAgency = async (ag: ShippingAgency) => {
+    if (!isSupabaseConfigured) {
+      setAgencies((current) => current.map((agency) => agency.id === ag.id ? { ...agency, is_active: !agency.is_active } : agency));
+      return;
+    }
     const { error } = await supabase
       .from("shipping_agencies")
       .update({ is_active: !ag.is_active })
@@ -179,6 +227,10 @@ export default function SettingsPage() {
 
   const handleDeleteAgency = async (id: string) => {
     if (!confirm("¿Eliminar esta agencia?")) return;
+    if (!isSupabaseConfigured) {
+      setAgencies((current) => current.filter((agency) => agency.id !== id));
+      return;
+    }
     const { error } = await supabase
       .from("shipping_agencies")
       .delete()

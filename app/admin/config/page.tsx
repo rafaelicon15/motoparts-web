@@ -20,7 +20,6 @@ type StoreConfig = {
   city: string;
   currency: string;
   catalogMode: "demo" | "inventory";
-  marketplaceSource: string;
   showWholesale: boolean;
   showMarketplaceReferences: boolean;
 };
@@ -33,7 +32,6 @@ const DEFAULT_CONFIG: StoreConfig = {
   city: "Caracas, Venezuela",
   currency: "USD + Bs.",
   catalogMode: "demo",
-  marketplaceSource: "MercadoLibre Venezuela",
   showWholesale: true,
   showMarketplaceReferences: true,
 };
@@ -96,7 +94,7 @@ export default function AdminConfigPage() {
               <label className="text-sm font-bold text-gray-700">Teléfono de atención<input value={config.phone} onChange={(e) => update("phone", e.target.value)} className="mt-2 w-full rounded-xl border border-gray-200 p-3 font-normal outline-none focus:border-[#e3000f]" /></label>
               <label className="text-sm font-bold text-gray-700">Ciudad / despacho<input value={config.city} onChange={(e) => update("city", e.target.value)} className="mt-2 w-full rounded-xl border border-gray-200 p-3 font-normal outline-none focus:border-[#e3000f]" /></label>
               <label className="text-sm font-bold text-gray-700">Moneda visible<select value={config.currency} onChange={(e) => update("currency", e.target.value)} className="mt-2 w-full rounded-xl border border-gray-200 bg-white p-3 font-normal outline-none focus:border-[#e3000f]"><option>USD + Bs.</option><option>Solo USD</option><option>Solo Bs.</option></select></label>
-              <label className="text-sm font-bold text-gray-700">Fuente de referencia<input value={config.marketplaceSource} onChange={(e) => update("marketplaceSource", e.target.value)} className="mt-2 w-full rounded-xl border border-gray-200 p-3 font-normal outline-none focus:border-[#e3000f]" /></label>
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs leading-5 text-gray-600 md:col-span-2">La fuente de productos demo se gestiona internamente para esta muestra y no necesita configuración por tienda.</div>
             </div>
           </section>
 

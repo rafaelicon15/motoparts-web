@@ -2,11 +2,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import {
   Phone,
   Mail,
-  MapPin,
   Save,
   Loader2,
   CheckCircle,
@@ -39,6 +38,11 @@ export default function StoreSettingsPage() {
   const fetchConfig = async () => {
     setLoading(true);
     try {
+      if (!isSupabaseConfigured) {
+        const localConfig = window.localStorage.getItem("motoparts-store-contact");
+        if (localConfig) setConfig((current) => ({ ...current, ...JSON.parse(localConfig) }));
+        return;
+      }
       const { data, error } = await supabase
         .from("store_config")
         .select("key_name, key_value");
@@ -60,7 +64,7 @@ export default function StoreSettingsPage() {
       });
 
       setConfig(newConfig);
-    } catch (err: any) {
+    } catch {
       setMessage({ type: "error", text: "Error cargando configuración" });
     } finally {
       setLoading(false);
@@ -76,6 +80,12 @@ export default function StoreSettingsPage() {
     setMessage(null);
 
     try {
+      if (!isSupabaseConfigured) {
+        window.localStorage.setItem("motoparts-store-contact", JSON.stringify(config));
+        setMessage({ type: "success", text: "Configuración demo guardada en este navegador." });
+        window.setTimeout(() => setMessage(null), 3000);
+        return;
+      }
       const updates = Object.entries(config).map(([key, value]) => ({
         key_name: key,
         key_value: value,
@@ -93,10 +103,10 @@ export default function StoreSettingsPage() {
         text: "Configuración guardada exitosamente",
       });
       setTimeout(() => setMessage(null), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessage({
         type: "error",
-        text: "Error guardando configuración: " + err.message,
+        text: "Error guardando configuración: " + (err instanceof Error ? err.message : "intenta nuevamente"),
       });
     } finally {
       setSaving(false);

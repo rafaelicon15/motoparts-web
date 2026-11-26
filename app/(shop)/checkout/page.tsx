@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cartStore";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -36,6 +36,33 @@ type PaymentMethod = {
   surcharge_value: number;
 };
 
+const demoAgencies: ShippingAgency[] = [
+  { id: "demo-zoom", name: "ZOOM", is_active: true },
+  { id: "demo-mrw", name: "MRW", is_active: true },
+  { id: "demo-tealca", name: "TEALCA", is_active: true },
+];
+
+const demoPaymentMethods: PaymentMethod[] = [
+  {
+    id: "demo-gateway",
+    name: "Pasarela de prueba",
+    is_active: true,
+    requires_receipt: false,
+    store_pickup_only: false,
+    surcharge_type: "none",
+    surcharge_value: 0,
+  },
+  {
+    id: "demo-pago-movil",
+    name: "Pago Móvil (demo)",
+    is_active: true,
+    requires_receipt: false,
+    store_pickup_only: false,
+    surcharge_type: "none",
+    surcharge_value: 0,
+  },
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCartStore();
@@ -62,6 +89,7 @@ export default function CheckoutPage() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [testCard, setTestCard] = useState({ number: "", expiry: "", cvv: "" });
 
   // --- Estado del proceso ---
   const [submitting, setSubmitting] = useState(false);
@@ -76,6 +104,17 @@ export default function CheckoutPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!isSupabaseConfigured) {
+          setAgencies(demoAgencies);
+          setPaymentMethods(demoPaymentMethods);
+          setBcvRate(Number(window.localStorage.getItem("motoparts-demo-bcv-rate")) || 922.56);
+          setFormData((prev) => ({
+            ...prev,
+            selectedAgencyId: demoAgencies[0].id,
+            selectedPaymentId: demoPaymentMethods[0].id,
+          }));
+          return;
+        }
         const [agenciesRes, paymentsRes, settingsRes] = await Promise.all([
           supabase
             .from("shipping_agencies")
@@ -180,6 +219,13 @@ export default function CheckoutPage() {
       setError("Por favor selecciona un método de pago.");
       return;
     }
+    if (selectedPayment?.id === "demo-gateway") {
+      const cardNumber = testCard.number.replace(/\s/g, "");
+      if (cardNumber !== "4242424242424242" || testCard.expiry !== "12/30" || testCard.cvv !== "123") {
+        setError("Usa la tarjeta demo 4242 4242 4242 4242, vencimiento 12/30 y CVV 123.");
+        return;
+      }
+    }
     if (selectedPayment?.requires_receipt && !receiptFile) {
       setError(
         `El método "${selectedPayment.name}" requiere adjuntar el comprobante de pago.`
@@ -190,31 +236,26 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      // 1. Subir comprobante a Storage (si existe)
       let receiptUrl: string | null = null;
-      if (receiptFile) {
-        const fileName = `receipt-${Date.now()}-${receiptFile.name.replace(/\s/g, "_")}`;
-        const { error: storageError } = await supabase.storage
-          .from("payment_receipts")
-          .upload(fileName, receiptFile, { contentType: receiptFile.type });
-
-        if (storageError) throw new Error("Error subiendo comprobante: " + storageError.message);
-
-        receiptUrl = supabase.storage
-          .from("payment_receipts")
-          .getPublicUrl(fileName).data.publicUrl;
-      }
-
-      // 2. Guardar la orden en la base de datos
       const deliveryLabel =
         formData.deliveryMethod === "pickup"
           ? "Retiro en tienda"
           : selectedAgency?.name || "Agencia";
+      let orderId = `DEMO-${Date.now()}`;
 
-      const { data: orderData, error: orderError } = await supabase
-        .from("orders")
-        .insert([
-          {
+      if (isSupabaseConfigured) {
+        if (receiptFile) {
+          const fileName = `receipt-${Date.now()}-${receiptFile.name.replace(/\s/g, "_")}`;
+          const { error: storageError } = await supabase.storage
+            .from("payment_receipts")
+            .upload(fileName, receiptFile, { contentType: receiptFile.type });
+          if (storageError) throw new Error("Error subiendo comprobante: " + storageError.message);
+          receiptUrl = supabase.storage.from("payment_receipts").getPublicUrl(fileName).data.publicUrl;
+        }
+
+        const { data: orderData, error: orderError } = await supabase
+          .from("orders")
+          .insert([{
             customer_name: formData.customerName.trim(),
             customer_phone: formData.customerPhone.trim(),
             customer_city: formData.customerCity.trim() || null,
@@ -227,29 +268,39 @@ export default function CheckoutPage() {
             bcv_rate: bcvRate,
             reference_number: formData.referenceNumber.trim() || null,
             receipt_url: receiptUrl,
-            status: "pending",
-          },
-        ])
-        .select("id")
-        .single();
+            status: selectedPayment?.id === "demo-gateway" ? "paid" : "pending",
+          }])
+          .select("id")
+          .single();
+        if (orderError || !orderData) throw new Error("Error guardando orden: " + (orderError?.message || "respuesta vacía"));
+        orderId = orderData.id;
 
-      if (orderError) throw new Error("Error guardando orden: " + orderError.message);
-
-      // 3. Guardar los items de la orden
-      const orderItems = cart.map((item) => ({
-        order_id: orderData.id,
-        product_id: item.id,
-        product_name: item.name,
-        quantity: item.quantity,
-        price_usd: item.priceUSD,
-        subtotal_usd: item.priceUSD * item.quantity,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) throw new Error("Error guardando items: " + itemsError.message);
+        const { error: itemsError } = await supabase.from("order_items").insert(cart.map((item) => ({
+          order_id: orderData.id,
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          price_usd: item.priceUSD,
+          subtotal_usd: item.priceUSD * item.quantity,
+        })));
+        if (itemsError) throw new Error("Error guardando items: " + itemsError.message);
+      } else {
+        const demoOrders = JSON.parse(window.localStorage.getItem("motoparts-demo-orders") || "[]");
+        demoOrders.push({
+          id: orderId,
+          created_at: new Date().toISOString(),
+          customer: formData,
+          deliveryLabel,
+          paymentMethod: selectedPayment?.name,
+          subtotalUSD,
+          surcharge,
+          totalUSD,
+          totalBs,
+          status: selectedPayment?.id === "demo-gateway" ? "paid" : "pending",
+          items: cart,
+        });
+        window.localStorage.setItem("motoparts-demo-orders", JSON.stringify(demoOrders));
+      }
 
       // 4. Construir y enviar mensaje de WhatsApp
       const itemsText = cart
@@ -287,7 +338,7 @@ ${itemsText}
 💱 Tasa BCV: ${bcvRate.toFixed(2)}
 ━━━━━━━━━━━━━━━━━━━━
 💳 *Pago:* ${selectedPayment?.name || ""}${refText}${receiptText}
-🆔 *Orden #:* ${orderData.id.split("-")[0].toUpperCase()}`;
+🆔 *Orden #:* ${orderId.split("-")[0].toUpperCase()}`;
 
       const whatsappNumber = "584243454919"; // Número de MotoParts
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
@@ -296,9 +347,9 @@ ${itemsText}
       clearCart();
       window.open(whatsappUrl, "_blank");
       router.push("/checkout/success");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Ocurrió un error al procesar tu pedido.");
+      setError(err instanceof Error ? err.message : "Ocurrió un error al procesar tu pedido.");
     } finally {
       setSubmitting(false);
     }
@@ -552,6 +603,19 @@ ${itemsText}
                       </div>
                     </label>
                   ))}
+              </div>
+            )}
+
+            {selectedPayment?.id === "demo-gateway" && (
+              <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <p className="text-sm font-extrabold text-blue-900">Pasarela de prueba</p>
+                <p className="mt-1 text-xs leading-5 text-blue-700">No se realizará ningún cobro. Usa estos datos para simular una aprobación:</p>
+                <p className="mt-2 rounded-lg bg-white px-3 py-2 font-mono text-xs font-bold text-blue-900">4242 4242 4242 4242 · 12/30 · CVV 123</p>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_110px_90px]">
+                  <input aria-label="Número de tarjeta de prueba" inputMode="numeric" placeholder="4242 4242 4242 4242" value={testCard.number} onChange={(e) => setTestCard({ ...testCard, number: e.target.value })} className="rounded-lg border border-blue-200 bg-white p-2.5 text-sm outline-none focus:border-blue-500" />
+                  <input aria-label="Vencimiento de tarjeta de prueba" inputMode="numeric" placeholder="MM/AA" maxLength={5} value={testCard.expiry} onChange={(e) => setTestCard({ ...testCard, expiry: e.target.value })} className="rounded-lg border border-blue-200 bg-white p-2.5 text-sm outline-none focus:border-blue-500" />
+                  <input aria-label="CVV de tarjeta de prueba" inputMode="numeric" placeholder="CVV" maxLength={3} value={testCard.cvv} onChange={(e) => setTestCard({ ...testCard, cvv: e.target.value })} className="rounded-lg border border-blue-200 bg-white p-2.5 text-sm outline-none focus:border-blue-500" />
+                </div>
               </div>
             )}
 

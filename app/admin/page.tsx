@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import {
   Package,
   ShoppingBag,
@@ -36,9 +36,25 @@ export default function AdminDashboard() {
     text: string;
   } | null>(null);
 
+  const demoBcvKey = "motoparts-demo-bcv-rate";
+
   const fetchMetrics = async () => {
     setLoading(true);
     try {
+      if (!isSupabaseConfigured) {
+        const localRate = Number(window.localStorage.getItem(demoBcvKey)) || 922.56;
+        setMetrics({
+          totalProducts: 10,
+          totalStock: 188,
+          totalOrders: 3,
+          pendingOrders: 2,
+          totalRevenue: 246.47,
+          activeAgencies: 3,
+          bcvRate: localRate,
+        });
+        setBcvInput(localRate.toFixed(2));
+        return;
+      }
       const [productsRes, ordersRes, agenciesRes, settingsRes] =
         await Promise.all([
           supabase.from("products").select("stock"),
@@ -93,6 +109,16 @@ export default function AdminDashboard() {
     setSavingBcv(true);
     setBcvMessage(null);
     try {
+      if (!isSupabaseConfigured) {
+        window.localStorage.setItem(demoBcvKey, rate.toFixed(2));
+        setBcvMessage({
+          type: "success",
+          text: `Tasa demo guardada a Bs. ${rate.toFixed(2)} en este navegador.`,
+        });
+        setMetrics((prev) => (prev ? { ...prev, bcvRate: rate } : prev));
+        window.setTimeout(() => setBcvMessage(null), 3000);
+        return;
+      }
       const { error } = await supabase.from("system_settings").upsert({
         key_name: "last_bcv_rate",
         key_value: rate.toFixed(2),
@@ -104,8 +130,8 @@ export default function AdminDashboard() {
       });
       setMetrics((prev) => (prev ? { ...prev, bcvRate: rate } : prev));
       setTimeout(() => setBcvMessage(null), 3000);
-    } catch (err: any) {
-      setBcvMessage({ type: "error", text: err.message });
+    } catch (err: unknown) {
+      setBcvMessage({ type: "error", text: err instanceof Error ? err.message : "No se pudo guardar la tasa." });
     } finally {
       setSavingBcv(false);
     }
